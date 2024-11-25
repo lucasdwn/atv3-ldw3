@@ -7,15 +7,15 @@ export const createExpense = async (req: Request, res: Response): Promise<Respon
     try {
         const { description, amount, date } = req.body;
 
-        if(!description){
+        if (!description) {
             return res.status(404).json({ message: 'Erro ao criar a despesa', error: 'Descrição é obrigatória' });
         }
 
-        if(!amount){
+        if (!amount) {
             return res.status(404).json({ message: 'Erro ao criar a despesa', error: 'Valor é obrigatório' });
         }
 
-        if(!date){
+        if (!date) {
             return res.status(404).json({ message: 'Erro ao criar a despesa', error: 'Data é obrigatória' });
         }
 
@@ -101,5 +101,26 @@ export const deleteExpense = async (req: Request, res: Response): Promise<Respon
         return res.status(200).json({ message: 'Despesa removida com sucesso' });
     } catch (error: any) {
         return res.status(400).json({ message: 'Erro ao remover a despesa', error: error.message });
+    }
+};
+
+export const getTotalExpenses = async (req: Request, res: Response) => {
+    try {
+        const total = await Expense.aggregate([
+            {
+                $group: {
+                    _id: null,
+                    totalAmount: { $sum: "$amount" }
+                }
+            }
+        ]);
+
+        const totalAmount = total.length > 0 ? total[0].totalAmount : 0;
+
+        res.status(200).json({ totalAmount });
+
+    }
+    catch (error: any) {
+        res.status(400).json({ message: 'Erro ao calcular total', error: error.message });
     }
 };
